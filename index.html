@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Платформа рецептов</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- ================= МОДУЛЬ АВТОРИЗАЦИИ (ВСТАВИТЬ ПЕРЕД </body>) ================= -->
+<style>
+  #auth-wall {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999999;
+      font-family: Arial, sans-serif;
+  }
+  .wall-card {
+      background: #ffffff;
+      padding: 35px 30px;
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+      width: 90%;
+      max-width: 380px;
+      text-align: left;
+  }
+  .wall-card h2 {
+      text-align: center;
+      color: #ff5722;
+      margin: 0 0 5px 0;
+      font-size: 24px;
+  }
+  .wall-card p.wall-sub {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin: 0 0 20px 0;
+  }
+  .wall-group {
+      margin-bottom: 14px;
+  }
+  .wall-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+  }
+  .wall-group input {
+      width: 100%;
+      padding: 11px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+  }
+  .wall-group input:focus {
+      outline: none;
+      border-color: #ff5722;
+  }
+  .wall-btn {
+      width: 100%;
+      padding: 12px;
+      background: #ff5722;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+  }
+  .wall-btn:hover {
+      background: #e64a19;
+  }
+  .wall-err {
+      background: #ffe3e3;
+      color: #c92a2a;
+      padding: 9px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      text-align: center;
+      display: none;
+  }
+  .wall-switch {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #555;
+  }
+  .wall-switch span {
+      color: #ff5722;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: underline;
+  }
+  /* Плавающая плашка пользователя в углу после входа */
+  #wall-user-badge {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background: #ffffff;
+      padding: 8px 14px;
+      border-radius: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 999998;
+  }
+  #wall-user-badge button {
+      background: #eee;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+  }
+</style>
+
+<div id="auth-wall">
+  <div class="wall-card">
+      <h2 id="w-title">Регистрация</h2>
+      <p class="wall-sub" id="w-sub">Зарегистрируйтесь, чтобы получить доступ к сайту</p>
+      <div class="wall-err" id="w-err"></div>
+
+      <div class="wall-group" id="w-name-box">
+          <label>Ваше имя</label>
+          <input type="text" id="w-name" placeholder="Введите имя">
+      </div>
+      <div class="wall-group">
+          <label>Логин или Телефон</label>
+          <input type="text" id="w-login" placeholder="Введите логин">
+      </div>
+      <div class="wall-group">
+          <label>Пароль</label>
+          <input type="password" id="w-pass" placeholder="Придумайте пароль">
+      </div>
+
+      <button type="button" class="wall-btn" id="w-submit" onclick="wallAction()">Зарегистрироваться</button>
+
+      <div class="wall-switch">
+          <b id="w-switch-txt">Уже есть аккаунт?</b>
+          <span id="w-switch-btn" onclick="wallToggle()">Войти</span>
+      </div>
+  </div>
+</div>
+
+<div id="wall-user-badge">
+  <span>👤 <b id="w-user-out">Гость</b></span>
+  <button type="button" onclick="wallLogout()">Выйти</button>
+</div>
+
+<script>
+  var wallIsReg = true;
+  var wallMem = {};
+
+  // Проверка, входил ли пользователь ранее
+  (function() {
+      try {
+          var active = localStorage.getItem("wall_active_user");
+          if (active) {
+              wallUnlock(active);
+          }
+      } catch (e) {}
+  })();
+
+  function wallToggle() {
+      wallIsReg = !wallIsReg;
+      document.getElementById("w-err").style.display = "none";
+      document.getElementById("w-title").innerText = wallIsReg ? "Регистрация" : "Вход";
+      document.getElementById("w-sub").innerText = wallIsReg ? "Зарегистрируйтесь, чтобы получить доступ к сайту" : "Войдите в свой аккаунт";
+      document.getElementById("w-name-box").style.display = wallIsReg ? "block" : "none";
+      document.getElementById("w-submit").innerText = wallIsReg ? "Зарегистрироваться" : "Войти";
+      document.getElementById("w-switch-txt").innerText = wallIsReg ? "Уже есть аккаунт?" : "Нет аккаунта?";
+      document.getElementById("w-switch-btn").innerText = wallIsReg ? "Войти" : "Зарегистрироваться";
+  }
+
+  function wallAction() {
+      var name = document.getElementById("w-name").value.trim();
+      var login = document.getElementById("w-login").value.trim();
+      var pass = document.getElementById("w-pass").value.trim();
+      var err = document.getElementById("w-err");
+
+      if (login === "" || pass === "" || (wallIsReg && name === "")) {
+          err.innerText = "Пожалуйста, заполните все поля!";
+          err.style.display = "block";
+          return;
+      }
+
+      if (wallIsReg) {
+          var userData = { name: name, pass: pass };
+          wallMem[login] = userData;
+          try {
+              localStorage.setItem("wall_user_" + login, JSON.stringify(userData));
+              localStorage.setItem("wall_active_user", name);
+          } catch (e) {}
+          wallUnlock(name);
+      } else {
+          var saved = null;
+          try { saved = JSON.parse(localStorage.getItem("wall_user_" + login)); } catch (e) {}
+          var user = wallMem[login] || saved;
+
+          if (!user) {
+              err.innerText = "Аккаунт не найден! Нажмите «Зарегистрироваться».";
+              err.style.display = "block";
+              return;
+          }
+          if (user.pass !== pass) {
+              err.innerText = "Неверный пароль!";
+              err.style.display = "block";
+              return;
+          }
+          try { localStorage.setItem("wall_active_user", user.name); } catch (e) {}
+          wallUnlock(user.name);
+      }
+  }
+
+  function wallUnlock(userName) {
+      document.getElementById("auth-wall").style.display = "none";
+      document.getElementById("wall-user-badge").style.display = "flex";
+      document.getElementById("w-user-out").innerText = userName;
+  }
+
+  function wallLogout() {
+      try { localStorage.removeItem("wall_active_user"); } catch (e) {}
+      document.getElementById("wall-user-badge").style.display = "none";
+      document.getElementById("auth-wall").style.display = "flex";
+      document.getElementById("w-pass").value = "";
+      document.getElementById("w-err").style.display = "none";
+  }
+</script>
+<!-- ================= КОНЕЦ МОДУЛЯ АВТОРИЗАЦИИ ================= -->
+
+</head>
+<body>
+
+  <!-- Баннер уведомления в реальном времени (WebSocket-макет) -->
+  <div class="ws-banner">
+    🔔 Новый рецепт: «Паста Карбонара» уже доступен в списке!
+  </div>
+
+  <!-- Шапка сайта -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#all-recipes" class="logo">🍳 Рецепты</a>
+      <nav class="nav">
+        <a href="#all-recipes" class="nav-link">Все рецепты</a>
+        <a href="#constructor" class="nav-link">Конструктор</a>
+        <a href="#my-recipes" class="nav-link">Мои рецепты</a>
+        <a href="#create-recipe" class="nav-link">Добавить рецепт</a>
+        <a href="#login" class="btn btn-outline">Вход</a>
+        <a href="#register" class="btn btn-orange">Регистрация</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content">
+
+    <!-- 1. РАЗДЕЛ: ВСЕ РЕЦЕПТЫ -->
+    <section id="all-recipes" class="section">
+      <div class="section-header">
+        <h1>Список рецептов</h1>
+        <div class="filters">
+          <input type="text" class="input" placeholder="Поиск по названию...">
+          <select class="input">
+            <option>Дата: сначала новые</option>
+            <option>Дата: сначала старые</option>
+            <option>Время: по возрастанию</option>
+            <option>Время: по убыванию</option>
+            <option>Калорийность: по возрастанию</option>
+            <option>Калорийность: по убыванию</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="recipes-grid">
+        <!-- Карточка 1 -->
+        <article class="card">
+          <div class="card-img-placeholder" style="background: linear-gradient(135deg, #fde68a, #f59e0b);">🍝</div>
+          <div class="card-body">
+            <h3>Паста Карбонара</h3>
+            <p class="card-desc">Классическая итальянская паста с беконом, сыром пармезан и нежным соусом.</p>
+            <div class="card-meta">
+              <span>🔥 540 ккал</span>
+              <span>⏱ 25 мин</span>
+            </div>
+            <a href="#recipe-detail" class="card-link">Смотреть рецепт →</a>
+          </div>
+        </article>
+
+        <!-- Карточка 2 -->
+        <article class="card">
+          <div class="card-img-placeholder" style="background: linear-gradient(135deg, #bbf7d0, #22c55e);">🥗</div>
+          <div class="card-body">
+            <h3>Греческий салат</h3>
+            <p class="card-desc">Свежие овощи, маслины, сыр фета и заправка из оливкового масла.</p>
+            <div class="card-meta">
+              <span>🔥 220 ккал</span>
+              <span>⏱ 15 мин</span>
+            </div>
+            <a href="#recipe-detail" class="card-link">Смотреть рецепт →</a>
+          </div>
+        </article>
+
+        <!-- Карточка 3 -->
+        <article class="card">
+          <div class="card-img-placeholder" style="background: linear-gradient(135deg, #fecaca, #ef4444);">🍲</div>
+          <div class="card-body">
+            <h3>Борщ домашний</h3>
+            <p class="card-desc">Наваристый традиционный суп со свеклой, говядиной, сметаной и зеленью.</p>
+            <div class="card-meta">
+              <span>🔥 380 ккал</span>
+              <span>⏱ 60 мин</span>
+            </div>
+            <a href="#recipe-detail" class="card-link">Смотреть рецепт →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 2. РАЗДЕЛ: КОНСТРУКТОР РЕЦЕПТОВ -->
+    <section id="constructor" class="section">
+      <h2>Конструктор рецептов</h2>
+      <p class="subtitle">Перетащите ингредиенты в область подбора, чтобы найти подходящие блюда.</p>
+      
+      <div class="constructor-grid">
+        <div class="box">
+          <h3>Доступные ингредиенты</h3>
+          <div class="chips">
+            <span class="chip" draggable="true">Спагетти</span>
+            <span class="chip" draggable="true">Бекон</span>
+            <span class="chip" draggable="true">Сыр пармезан</span>
+            <span class="chip" draggable="true">Томаты</span>
+            <span class="chip" draggable="true">Сыр фета</span>
+            <span class="chip" draggable="true">Свекла</span>
+            <span class="chip" draggable="true">Говядина</span>
+          </div>
+        </div>
+
+        <div class="drop-zone">
+          <h3>Область выбранных ингредиентов</h3>
+          <p class="drop-hint">Перетащите ингредиенты сюда</p>
+          <div class="chips">
+            <span class="chip chip-selected">Спагетти ×</span>
+            <span class="chip chip-selected">Бекон ×</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. РАЗДЕЛ: МОИ РЕЦЕПТЫ -->
+    <section id="my-recipes" class="section">
+      <h2>Мои рецепты</h2>
+      <div class="recipes-grid">
+        <article class="card">
+          <div class="card-img-placeholder" style="background: linear-gradient(135deg, #fde68a, #f59e0b);">🍝</div>
+          <div class="card-body">
+            <h3>Паста Карбонара</h3>
+            <p class="card-desc">Классическая итальянская паста с беконом, сыром пармезан и нежным соусом.</p>
+            <div class="card-meta">
+              <span>🔥 540 ккал</span>
+              <span>⏱ 25 мин</span>
+            </div>
+            <div class="card-actions">
+              <a href="#create-recipe" class="btn btn-outline-dark">Редактировать</a>
+              <a href="#delete-modal" class="btn btn-danger">Удалить</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 4. РАЗДЕЛ: СОЗДАНИЕ / РЕДАКТИРОВАНИЕ РЕЦЕПТА -->
+    <section id="create-recipe" class="section">
+      <div class="form-card">
+        <h2>Добавить / Редактировать рецепт</h2>
+        <form action="#">
+          <div class="form-group">
+            <label>Название рецепта</label>
+            <input type="text" class="input" placeholder="Например: Сырники домашние" required>
+          </div>
+          <div class="form-group">
+            <label>Описание</label>
+            <textarea class="input" rows="3" placeholder="Краткое описание блюда..." required></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Калорийность (ккал)</label>
+              <input type="number" class="input" placeholder="320" required>
+            </div>
+            <div class="form-group">
+              <label>Время приготовления (мин)</label>
+              <input type="number" class="input" placeholder="30" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Изображение блюда</label>
+            <input type="file" class="input" accept="image/*">
+          </div>
+          <div class="form-group">
+            <label>Ингредиенты (через запятую)</label>
+            <input type="text" class="input" placeholder="Творог, яйцо, мука, сахар" required>
+          </div>
+          <button type="submit" class="btn btn-orange btn-full">Сохранить рецепт</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПРОСМОТР РЕЦЕПТА -->
+  <div id="recipe-detail" class="modal">
+    <div class="modal-box modal-lg">
+      <a href="#" class="modal-close">&times;</a>
+      <h2>Паста Карбонара</h2>
+      <div class="card-meta" style="margin-bottom: 12px;">
+        <span>🔥 540 ккал</span>
+        <span>⏱ 25 мин</span>
+      </div>
+      <p>Классическая итальянская паста с беконом, сыром пармезан и нежным соусом на основе яичных желтков.</p>
+      <h4>Ингредиенты:</h4>
+      <ul class="ingredients-list">
+        <li>Спагетти — 250 г</li>
+        <li>Бекон — 150 г</li>
+        <li>Сыр пармезан — 70 г</li>
+        <li>Яичные желтки — 3 шт.</li>
+        <li>Чеснок, соль, чёрный перец — по вкусу</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ -->
+  <div id="delete-modal" class="modal">
+    <div class="modal-box">
+      <a href="#" class="modal-close">&times;</a>
+      <h3>Удалить рецепт?</h3>
+      <p class="subtitle">Вы действительно хотите удалить рецепт «Паста Карбонара»? Это действие нельзя отменить.</p>
+      <div class="modal-actions">
+        <a href="#my-recipes" class="btn btn-outline-dark">Отмена</a>
+        <a href="#my-recipes" class="btn btn-danger">Да, удалить</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ВХОД -->
+  <div id="login" class="modal">
+    <div class="modal-box">
+      <a href="#" class="modal-close">&times;</a>
+      <h2>Вход</h2>
+      <form action="#all-recipes">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" class="input" placeholder="user@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Пароль</label>
+          <input type="password" class="input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-orange btn-full">Войти</button>
+      </form>
+      <p class="modal-footer-text">Нет аккаунта? <a href="#register">Зарегистрироваться</a></p>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: РЕГИСТРАЦИЯ -->
+  <div id="register" class="modal">
+    <div class="modal-box">
+      <a href="#" class="modal-close">&times;</a>
+      <h2>Регистрация</h2>
+      <form action="#login">
+        <div class="form-group">
+          <label>Имя</label>
+          <input type="text" class="input" placeholder="Иван" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" class="input" placeholder="user@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Пароль</label>
+          <input type="password" class="input" placeholder="Придумайте пароль" required>
+        </div>
+        <button type="submit" class="btn btn-orange btn-full">Зарегистрироваться</button>
+      </form>

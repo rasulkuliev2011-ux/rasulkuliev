@@ -1,0 +1,445 @@
+
+/* Базовый сброс и переменные */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Баннер уведомлений WebSocket */
+.ws-banner {
+  background-color: #10b981;
+  color: #ffffff;
+  text-align: center;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Шапка сайта */
+.header {
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.logo {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.nav-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #ffffff;
+}
+
+/* Кнопки */
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-orange {
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+.btn-orange:hover {
+  background-color: #ea580c;
+}
+
+.btn-outline {
+  border-color: #64748b;
+  color: #ffffff;
+  background: transparent;
+}
+
+.btn-outline:hover {
+  border-color: #ffffff;
+}
+
+.btn-outline-dark {
+  border-color: #cbd5e1;
+  color: #1e293b;
+  background: #ffffff;
+}
+
+.btn-outline-dark:hover {
+  background: #f1f5f9;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-full {
+  width: 100%;
+  padding: 11px;
+}
+
+/* Секции и заголовки */
+.main-content {
+  padding-top: 32px;
+  padding-bottom: 60px;
+}
+
+.section {
+  margin-bottom: 56px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+h1, h2 {
+  font-size: 24px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Поля ввода и фильтры */
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.input {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #1e293b;
+  outline: none;
+  width: 100%;
+}
+
+.filters .input {
+  width: auto;
+  min-width: 200px;
+}
+
+.input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Подсветка ошибки валидации */
+.input:invalid:not(:placeholder-shown) {
+  border-color: #ef4444;
+}
+
+/* Сетка карточек рецептов */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.card-img-placeholder {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 54px;
+}
+
+.card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-body h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #475569;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  margin-bottom: 12px;
+}
+
+.card-link {
+  color: #f97316;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.card-actions .btn {
+  flex: 1;
+}
+
+/* Конструктор рецептов */
+.constructor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.box, .drop-zone {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.drop-zone {
+  border: 2px dashed #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.box h3, .drop-zone h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.drop-hint {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: grab;
+  user-select: none;
+}
+
+.chip-selected {
+  background: #ffedd5;
+  border-color: #f97316;
+  color: #c2410c;
+  font-weight: 600;
+}
+
+/* Форма добавления/редактирования */
+.form-card {
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  max-width: 560px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #334155;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Модальные окна на чистом CSS (:target) */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1000;
+}
+
+.modal:target {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box {
+  background: #ffffff;
+  width: 100%;
+  max-width: 380px;
+  padding: 28px;
+  border-radius: 14px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-lg {
+  max-width: 520px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 24px;
+  color: #94a3b8;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #0f172a;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+.modal-footer-text {
+  margin-top: 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #64748b;
+}
+
+.modal-footer-text a {
+  color: #f97316;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ingredients-list {
+  margin-top: 10px;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #334155;
+}
+
+/* Адаптивность для мобильных экранов */
+@media (max-width: 768px) {
+  .constructor-grid,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filters .input {
+    width: 100%;
+  }
+}
